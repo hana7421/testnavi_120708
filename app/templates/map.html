@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Maps with Voice Input</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: 90%;
+      width: 100%;
+    }
+    #controls {
+      height: 10%;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEYlibraries=places&callback=initMap" defer></script>
+  <script>
+    let map, directionsService, directionsRenderer, autocompleteStart;
+
+    function initMap() {
+      const MyLatLng = { lat: 35.6811673, lng: 139.7670516 }; // 東京駅
+      const mapOptions = {
+        zoom: 15,
+        center: MyLatLng,
+        mapTypeId: 'roadmap'
+      };
+
+      map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+      // Directions Service and Renderer setup
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+
+      // Autocomplete setup for start location
+      autocompleteStart = new google.maps.places.Autocomplete(
+        document.getElementById('start-location')
+      );
+
+      // Voice input for destination
+      document.getElementById('voice-btn').addEventListener('click', startVoiceRecognition);
+
+      // Route calculation button
+      document.getElementById('route-btn').addEventListener('click', () => {
+        calculateAndDisplayRoute();
+      });
+    }
+
+    function calculateAndDisplayRoute() {
+      const startPlace = autocompleteStart.getPlace();
+      const startLocation = startPlace
+        ? startPlace.geometry.location
+        : document.getElementById('start-location').value;
+      const endLocation = document.getElementById('end-location').value;
+
+      if (!endLocation) {
+        alert("目的地を入力してください。");
+        return;
+      }
+
+      directionsService.route(
+        {
+          origin: startLocation,
+          destination: endLocation,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (response, status) => {
+          if (status === 'OK') {
+            directionsRenderer.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        }
+      );
+    }
+
+    function startVoiceRecognition() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'ja-JP'; // 日本語対応
+
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const voiceInput = event.results[0][0].transcript;
+        document.getElementById('end-location').value = voiceInput; // 目的地をセット
+        alert(`音声入力された目的地: ${voiceInput}`);
+      };
+
+      recognition.onerror = (event) => {
+        alert('音声認識エラー: ' + event.error);
+      };
+    }
+  </script>
+</head>
+<body>
+  <div id="controls">
+    <input id="start-location" type="text" placeholder="出発地を検索" />
+    <input id="end-location" type="text" placeholder="目的地を音声で入力" />
+    <button id="voice-btn">🎤 音声入力</button>
+    <button id="route-btn">ルート検索</button>
+  </div>
+  <div id="map"></div>
+</body>
+</html>

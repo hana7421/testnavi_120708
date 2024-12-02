@@ -1,0 +1,21 @@
+{
+    "name": "Flask Google Maps App",
+    "build": {
+      "dockerfile": "../Dockerfile",
+      "context": ".."
+    },
+    "customizations": {
+      "vscode": {
+        "settings": {
+          "python.defaultInterpreterPath": "/workspace/.venv/bin/python"
+        },
+        "extensions": [
+          "ms-python.python",
+          "ms-azuretools.vscode-docker"
+        ]
+      }
+    },
+    "remoteUser": "root",
+    "postCreateCommand": "pip install --no-cache-dir -r devcontainer/requirements.txt"
+  }
+  
